@@ -19,11 +19,22 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h1 class="modal-title fs-5" id="h1-add-event-title">Modal title</h1>
+                <h1 class="modal-title fs-5">일정 추가</h1>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                일정 추가
+                <div class="row m-3">
+                    <label class="col-4" for="input-start-date">시작시간</label>
+                    <input class="col-8" type="date" id="input-start-date" name="input-start-date">
+                </div>
+                <div class="row m-3">
+                    <label class="col-4" for="input-end-date">종료시간</label>
+                    <input class="col-8" type="date" id="input-end-date" name="input-end-date">
+                </div>
+                <div class="row m-3">
+                    <label class="col-4" for="input-title">제목</label>
+                    <input class="col-8" type="text" id="input-title" name="input-title">
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
@@ -35,6 +46,9 @@
 
 
 <script>
+    let clickDate = '2024-06-01';
+
+
     document.addEventListener('DOMContentLoaded', function () {
         var calendarEl = document.getElementById('calendar');
 
@@ -53,8 +67,8 @@
             editable: true,
             selectable: true,
             select: function (selectionInfo) {
-                console.log(selectionInfo);
-                $('#h1-add-event-title').text(selectionInfo.start);
+                clickDate = stringToDate(selectionInfo.start);
+                $('#input-start-date').val(clickDate);
                 $('#modal-add-event').modal('toggle');
             },
 
@@ -76,8 +90,8 @@
 
         $('#button-add-event').on('click', function () {
             const event = {
-                title: 'temp Event',
-                start: stringToDate($('#h1-add-event-title').text()),
+                title: $('#input-title').val(),
+                start: clickDate,
             };
 
             $.ajax({
@@ -87,7 +101,7 @@
                     'event': event,
                 },
                 success: function (res) {
-                    calendar.refetchEvents();
+                    calendar.addEvent(event);
                     alert(res.status);
                 },
                 failure: function (res) {
