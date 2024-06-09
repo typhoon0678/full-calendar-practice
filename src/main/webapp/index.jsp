@@ -19,10 +19,12 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h1 class="modal-title fs-5">일정 추가</h1>
+                <h1 class="modal-title fs-5" id="modal-title">일정 추가</h1>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                <input type="hidden" id="input-event-id" name="input-event-id">
+
                 <div class="row m-3">
                     <label class="col-4" for="input-start-date">시작시간</label>
                     <input class="col-8" type="date" id="input-start-date" name="input-start-date">
@@ -38,7 +40,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
-                <button type="button" class="btn btn-primary" id="button-add-event">추가</button>
+                <button type="button" class="btn btn-primary" id="button-event-add">추가</button>
             </div>
         </div>
     </div>
@@ -46,7 +48,19 @@
 
 
 <script>
+    const modalTitle = $('#modal-title');
+    const modalEventAdd = $('#modal-add-event');
+    const inputEventId = $('#input-event-id');
+    const inputStartDate = $('#input-start-date');
+    const inputEndDate = $('#input-end-date');
+    const inputTitle = $('#input-title');
+
+    const buttonEventAdd = $('#button-event-add');
+
     let clickDate = '2024-06-01';
+    let releaseDate = '2024-06-01';
+
+    let tempId = 14;
 
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -61,15 +75,22 @@
                 center: 'title',
                 right: 'prev,next',
             },
-            // initialDate: '2024-06-06',
-            navLinks: false,
 
-            editable: true,
+            editable: false,
             selectable: true,
             select: function (selectionInfo) {
                 clickDate = stringToDate(selectionInfo.start);
-                $('#input-start-date').val(clickDate);
-                $('#modal-add-event').modal('toggle');
+                releaseDate = stringToDate(selectionInfo.end);
+
+                setModal(
+                    '일정 추가',
+                    0,
+                    clickDate,
+                    releaseDate,
+                    ''
+                );
+
+                modalEventAdd.modal('toggle');
             },
 
             dayMaxEvents: true, // allow "more" link when too many events
@@ -80,46 +101,94 @@
                     alert('there was an error while fetching events!');
                 },
             },
-            eventClick: function () {
-                console.log('clicked');
-            }
+            eventClick: function (info) {
+                setModal(
+                    '일정 변경',
+                    info.event.id,
+                    stringToDate(info.event.start),
+                    stringToDate(info.event.end),
+                    info.event.title
+                );
+
+                modalEventAdd.modal('toggle');
+            },
         });
 
         calendar.render();
 
 
-        $('#button-add-event').on('click', function () {
-            const event = {
-                title: $('#input-title').val(),
-                start: clickDate,
-            };
+        buttonEventAdd.on('click', function () {
 
-            $.ajax({
-                url: '/calendar/add',
-                method: 'post',
-                data: {
-                    'event': event,
-                },
-                success: function (res) {
-                    calendar.addEvent(event);
-                    alert(res.status);
-                },
-                failure: function (res) {
-                    alert(res.status);
-                }
-            });
+            if (modalTitle.text() === '일정 추가') {
+                tempId++;
+                console.log(tempId);
+                const event = {
+                    id: tempId,
+                    title: inputTitle.val(),
+                    start: inputStartDate.val(),
+                    end: inputEndDate.val()
+                };
 
-            $('#modal-add-event').modal('toggle');
+                $.ajax({
+                    url: '/calendar/add',
+                    method: 'post',
+                    data: {
+                        'event': event,
+                    },
+                    success: function (res) {
+                        calendar.addEvent(event);
+                        alert(res.status);
+                    },
+                    failure: function (res) {
+                        event.revert();
+                        alert(res.status);
+                    }
+                });
+            } else if (modalTitle.text() === '일정 변경') {
+                console.log(inputEventId.val());
+                const event = {
+                    id: inputEventId.val(),
+                    title: inputTitle.val(),
+                    start: inputStartDate.val(),
+                    end: inputEndDate.val()
+                };
+
+                $.ajax({
+                    url: '/calendar/modify',
+                    method: 'post',
+                    data: {
+                        'event': event,
+                    },
+                    success: function (res) {
+                        calendar.removeAllEvents();
+                        calendar.refetchEvents();
+                        alert(res.status);
+                    },
+                    failure: function (res) {
+                        alert(res.status);
+                    }
+                });
+            }
+
+            modalEventAdd.modal('toggle');
         });
     });
 
     function stringToDate(dateStr) {
-        var date = new Date(dateStr);
-        var year = date.getFullYear();
-        var month = ("0" + (date.getMonth() + 1)).slice(-2); // Months are zero based
-        var day = ("0" + date.getDate()).slice(-2);
+        let date = new Date(dateStr);
+        let year = date.getFullYear();
+        let month = ("0" + (date.getMonth() + 1)).slice(-2); // Months are zero based
+        let day = ("0" + date.getDate()).slice(-2);
 
         return year + '-' + month + '-' + day;
+    }
+
+    function setModal(title, eventId, start, end, eventTitle) {
+        modalTitle.text(title);
+        inputEventId.val(eventId);
+        inputStartDate.val(start);
+        inputEndDate.val(end);
+        inputTitle.val(eventTitle);
     }
 
 </script>

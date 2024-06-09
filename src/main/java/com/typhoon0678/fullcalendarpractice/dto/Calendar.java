@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class Calendar {
 
+    private long id;
     private Integer groupId;
     private String title;
     private String url;
