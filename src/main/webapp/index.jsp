@@ -76,17 +76,57 @@
                 right: 'prev,next',
             },
 
-            editable: false,
+            editable: true,
             selectable: true,
+            eventDrop: function(info) {
+                const event = {
+                    id: info.event.id,
+                    title: info.event.title,
+                    start: stringToDate(info.event.start),
+                    end: stringToDate(info.event.end)
+                };
+
+                $.ajax({
+                    url: '/calendar/modify',
+                    method: 'post',
+                    data: {
+                        'event': event,
+                    },
+                    success: function (res) {},
+                    failure: function (res) {
+                        alert(res.status);
+                    }
+                });
+            },
+            eventResize: function(info) {
+                const event = {
+                    id: info.event.id,
+                    title: info.event.title,
+                    start: stringToDate(info.event.start),
+                    end: stringToDate(info.event.end)
+                };
+
+                $.ajax({
+                    url: '/calendar/modify',
+                    method: 'post',
+                    data: {
+                        'event': event,
+                    },
+                    success: function (res) {},
+                    failure: function (res) {
+                        alert(res.status);
+                    }
+                });
+            },
+
             select: function (selectionInfo) {
-                clickDate = stringToDate(selectionInfo.start);
-                releaseDate = stringToDate(selectionInfo.end);
 
                 setModal(
                     '일정 추가',
+                    '추가',
                     0,
-                    clickDate,
-                    releaseDate,
+                    stringToDate(selectionInfo.start),
+                    stringToDate(selectionInfo.end),
                     ''
                 );
 
@@ -104,6 +144,7 @@
             eventClick: function (info) {
                 setModal(
                     '일정 변경',
+                    '변경',
                     info.event.id,
                     stringToDate(info.event.start),
                     stringToDate(info.event.end),
@@ -183,12 +224,17 @@
         return year + '-' + month + '-' + day;
     }
 
-    function setModal(title, eventId, start, end, eventTitle) {
+    function setModal(title, buttonText, eventId, start, end, eventTitle) {
         modalTitle.text(title);
+        buttonEventAdd.text(buttonText);
         inputEventId.val(eventId);
         inputStartDate.val(start);
         inputEndDate.val(end);
         inputTitle.val(eventTitle);
+    }
+
+    function modityEvent(event) {
+
     }
 
 </script>
