@@ -119,52 +119,6 @@
                     textColor: textColorArray[colorIndex]
                 };
             },
-
-            eventDrop: function (info) {
-                const event = {
-                    id: info.event.id,
-                    groupId: info.event.extendedProps.groupId,
-                    title: info.event.title,
-                    start: stringToDate(info.event.start),
-                    end: stringToDate(info.event.end)
-                };
-
-                $.ajax({
-                    url: '/calendar/modify',
-                    method: 'post',
-                    data: {
-                        'event': event,
-                    },
-                    success: function (res) {
-                    },
-                    failure: function (res) {
-                        alert(res.status);
-                    }
-                });
-            },
-            eventResize: function (info) {
-                const event = {
-                    id: info.event.id,
-                    groupId: info.event.extendedProps.groupId,
-                    title: info.event.title,
-                    start: stringToDate(info.event.start),
-                    end: stringToDate(info.event.end)
-                };
-
-                $.ajax({
-                    url: '/calendar/modify',
-                    method: 'post',
-                    data: {
-                        'event': event,
-                    },
-                    success: function (res) {
-                    },
-                    failure: function (res) {
-                        alert(res.status);
-                    }
-                });
-            },
-
             select: function (selectionInfo) {
                 setModal(
                     '일정 추가',
@@ -178,7 +132,6 @@
 
                 modalEventAdd.modal('toggle');
             },
-
             eventClick: function (info) {
                 setModal(
                     '일정 변경',
@@ -193,9 +146,32 @@
                 modalEventAdd.modal('toggle');
             },
 
-            eventChange: function (changeInfo) {
-                changeInfo.event.extendedProps.groupId = changeInfo.oldEvent.groupId;
-                changeInfo.event.groupId = changeInfo.event.id;
+            eventChange: function (info) {
+                info.event.extendedProps.groupId = info.oldEvent.groupId;
+                info.event.groupId = info.event.id;
+
+                const event = {
+                    id: info.event.id,
+                    groupId: info.event.extendedProps.groupId,
+                    title: info.event.title,
+                    start: stringToDate(info.event.start),
+                    end: stringToDate(info.event.end)
+                };
+
+                $.ajax({
+                    url: '/calendar/modify',
+                    method: 'post',
+                    data: {
+                        'event': event,
+                    },
+                    success: function (res) {
+                    },
+                    failure: function (res) {
+                        info.event = info.oldEvent;
+                        alert(res.status);
+                    }
+                });
+
             }
         });
 
