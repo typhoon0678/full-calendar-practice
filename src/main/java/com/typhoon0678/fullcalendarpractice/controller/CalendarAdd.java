@@ -22,6 +22,7 @@ public class CalendarAdd extends HttpServlet {
 
         Data.CALENDAR_DATA.add(Calendar.builder()
                 .id(Long.parseLong(req.getParameter("event[id]")))
+                .groupId(Long.parseLong(req.getParameter("event[groupId]")))
                 .title(req.getParameter("event[title]"))
                 .start(req.getParameter("event[start]"))
                 .end(req.getParameter("event[end]"))

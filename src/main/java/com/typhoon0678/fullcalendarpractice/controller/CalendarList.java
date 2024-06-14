@@ -2,6 +2,7 @@ package com.typhoon0678.fullcalendarpractice.controller;
 
 import com.google.gson.Gson;
 import com.typhoon0678.fullcalendarpractice.Data;
+import com.typhoon0678.fullcalendarpractice.dto.Calendar;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -20,6 +21,7 @@ public class CalendarList extends HttpServlet {
         PrintWriter out = resp.getWriter();
 
         Gson gson = new Gson();
+
         out.println(gson.toJson(Data.CALENDAR_DATA));
 
         out.flush();

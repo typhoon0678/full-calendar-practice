@@ -12,9 +12,8 @@ import lombok.NoArgsConstructor;
 public class Calendar {
 
     private long id;
-    private Integer groupId;
+    private long groupId; // event의 groupID 아님
     private String title;
-    private String url;
     private String start;
     private String end;
 }

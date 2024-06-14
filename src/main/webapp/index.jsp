@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>JSP - Hello World</title>
+    <title>Calendar</title>
     <link href="${pageContext.request.contextPath}/css/bootstrap.min.css" rel="stylesheet">
     <script src="${pageContext.request.contextPath}/js/bootstrap.bundle.min.js"></script>
     <script src="${pageContext.request.contextPath}/js/index.global.js"></script>
@@ -10,6 +10,8 @@
     <link href="${pageContext.request.contextPath}/css/index.css" rel="stylesheet">
 </head>
 <body>
+
+<div id="div-group"></div>
 
 <div id='calendar'></div>
 
@@ -37,6 +39,11 @@
                     <label class="col-4" for="input-title">제목</label>
                     <input class="col-8" type="text" id="input-title" name="input-title">
                 </div>
+                <div class="row m-3">
+                    <label class="col-4" for="input-group">그룹</label>
+                    <select class="col-8" type="text" id="input-group" name="input-group">
+                    </select>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
@@ -54,12 +61,14 @@
     const inputStartDate = $('#input-start-date');
     const inputEndDate = $('#input-end-date');
     const inputTitle = $('#input-title');
+    const inputGroup = $('#input-group');
 
     const buttonEventAdd = $('#button-event-add');
 
-    let clickDate = '2024-06-01';
-    let releaseDate = '2024-06-01';
+    const colorArray = ['yellow', 'blue', 'green', 'purple', 'orange', 'gray'];
+    const textColorArray = ['black', 'white', 'white', 'white', 'black', 'black'];
 
+    let idArray = [];
     let tempId = 14;
 
 
@@ -76,11 +85,45 @@
                 right: 'prev,next',
             },
 
+            dayMaxEvents: true, // allow "more" link when too many events
             editable: true,
             selectable: true,
-            eventDrop: function(info) {
+
+            events: {
+                url: '/calendar/list',
+                method: 'POST',
+                failure: function () {
+                    alert('there was an error while fetching events!');
+                },
+            },
+            eventDataTransform: function (eventData) {
+                let id = eventData.groupId;
+
+                if (!idArray.includes(id)) {
+                    idArray.push(id);
+                    inputGroup.append("<option value=\"" + id + "\">" + id + "</option>");
+                }
+
+                let colorIndex = idArray.indexOf(id) % colorArray.length;
+
+                return {
+                    id: eventData.id,
+                    groupId: eventData.id,
+                    title: eventData.title,
+                    start: eventData.start,
+                    end: eventData.end,
+                    extendedProps: {
+                        groupId: eventData.groupId
+                    },
+                    backgroundColor: colorArray[colorIndex],
+                    textColor: textColorArray[colorIndex]
+                };
+            },
+
+            eventDrop: function (info) {
                 const event = {
                     id: info.event.id,
+                    groupId: info.event.extendedProps.groupId,
                     title: info.event.title,
                     start: stringToDate(info.event.start),
                     end: stringToDate(info.event.end)
@@ -92,15 +135,17 @@
                     data: {
                         'event': event,
                     },
-                    success: function (res) {},
+                    success: function (res) {
+                    },
                     failure: function (res) {
                         alert(res.status);
                     }
                 });
             },
-            eventResize: function(info) {
+            eventResize: function (info) {
                 const event = {
                     id: info.event.id,
+                    groupId: info.event.extendedProps.groupId,
                     title: info.event.title,
                     start: stringToDate(info.event.start),
                     end: stringToDate(info.event.end)
@@ -112,7 +157,8 @@
                     data: {
                         'event': event,
                     },
-                    success: function (res) {},
+                    success: function (res) {
+                    },
                     failure: function (res) {
                         alert(res.status);
                     }
@@ -120,11 +166,11 @@
             },
 
             select: function (selectionInfo) {
-
                 setModal(
                     '일정 추가',
                     '추가',
                     0,
+                    null,
                     stringToDate(selectionInfo.start),
                     stringToDate(selectionInfo.end),
                     ''
@@ -133,19 +179,12 @@
                 modalEventAdd.modal('toggle');
             },
 
-            dayMaxEvents: true, // allow "more" link when too many events
-            events: {
-                url: '/calendar/list',
-                method: 'POST',
-                failure: function () {
-                    alert('there was an error while fetching events!');
-                },
-            },
             eventClick: function (info) {
                 setModal(
                     '일정 변경',
                     '변경',
                     info.event.id,
+                    info.event.extendedProps.groupId,
                     stringToDate(info.event.start),
                     stringToDate(info.event.end),
                     info.event.title
@@ -153,6 +192,11 @@
 
                 modalEventAdd.modal('toggle');
             },
+
+            eventChange: function (changeInfo) {
+                changeInfo.event.extendedProps.groupId = changeInfo.oldEvent.groupId;
+                changeInfo.event.groupId = changeInfo.event.id;
+            }
         });
 
         calendar.render();
@@ -163,8 +207,10 @@
             if (modalTitle.text() === '일정 추가') {
                 tempId++;
                 console.log(tempId);
+
                 const event = {
                     id: tempId,
+                    groupId: inputGroup.val(),
                     title: inputTitle.val(),
                     start: inputStartDate.val(),
                     end: inputEndDate.val()
@@ -177,7 +223,8 @@
                         'event': event,
                     },
                     success: function (res) {
-                        calendar.addEvent(event);
+                        calendar.removeAllEvents();
+                        calendar.refetchEvents();
                         alert(res.status);
                     },
                     failure: function (res) {
@@ -186,9 +233,9 @@
                     }
                 });
             } else if (modalTitle.text() === '일정 변경') {
-                console.log(inputEventId.val());
                 const event = {
                     id: inputEventId.val(),
+                    groupId: inputGroup.val(),
                     title: inputTitle.val(),
                     start: inputStartDate.val(),
                     end: inputEndDate.val()
@@ -224,17 +271,14 @@
         return year + '-' + month + '-' + day;
     }
 
-    function setModal(title, buttonText, eventId, start, end, eventTitle) {
+    function setModal(title, buttonText, eventId, groupId, start, end, eventTitle) {
         modalTitle.text(title);
         buttonEventAdd.text(buttonText);
         inputEventId.val(eventId);
+        inputGroup.val(groupId);
         inputStartDate.val(start);
         inputEndDate.val(end);
         inputTitle.val(eventTitle);
-    }
-
-    function modityEvent(event) {
-
     }
 
 </script>

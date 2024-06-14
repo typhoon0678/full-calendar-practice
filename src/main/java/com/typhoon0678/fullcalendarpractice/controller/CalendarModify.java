@@ -27,6 +27,7 @@ public class CalendarModify extends HttpServlet {
                 findIndex(id),
                 Calendar.builder()
                         .id(id)
+                        .groupId(Long.parseLong(req.getParameter("event[groupId]")))
                         .title(req.getParameter("event[title]"))
                         .start(req.getParameter("event[start]"))
                         .end(req.getParameter("event[end]"))
