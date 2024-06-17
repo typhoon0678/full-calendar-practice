@@ -14,6 +14,7 @@ public class Calendar {
     private long id;
     private long groupId; // event의 groupID 아님
     private String title;
+    private String content;
     private String start;
     private String end;
 }

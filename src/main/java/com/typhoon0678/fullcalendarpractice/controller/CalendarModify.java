@@ -20,23 +20,13 @@ public class CalendarModify extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-        long id = Long.parseLong(req.getParameter("event[id]"));
-        System.out.println("eventId: " + id);
-
-        Data.CALENDAR_DATA.set(
-                findIndex(id),
-                Calendar.builder()
-                        .id(id)
-                        .groupId(Long.parseLong(req.getParameter("event[groupId]")))
-                        .title(req.getParameter("event[title]"))
-                        .start(req.getParameter("event[start]"))
-                        .end(req.getParameter("event[end]"))
-                        .build());
-
+        Gson gson = new Gson();
         resp.setContentType("application/json");
         PrintWriter out = resp.getWriter();
 
-        Gson gson = new Gson();
+        Calendar calendar = gson.fromJson(req.getReader(), Calendar.class);
+        Data.CALENDAR_DATA.set(Long.valueOf(calendar.getId()).intValue(), calendar);
+
         Map<String, String> response = new HashMap<>();
 
         if (true) {
@@ -50,7 +40,7 @@ public class CalendarModify extends HttpServlet {
     }
 
     private int findIndex(long id) {
-        for (int i=0; i<Data.CALENDAR_DATA.size(); i++) {
+        for (int i = 0; i < Data.CALENDAR_DATA.size(); i++) {
             if (Data.CALENDAR_DATA.get(i).getId() == id) {
                 return i;
             }

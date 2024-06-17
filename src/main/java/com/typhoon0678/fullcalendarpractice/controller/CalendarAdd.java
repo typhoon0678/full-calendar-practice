@@ -20,19 +20,13 @@ public class CalendarAdd extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-        Data.CALENDAR_DATA.add(Calendar.builder()
-                .id(Long.parseLong(req.getParameter("event[id]")))
-                .groupId(Long.parseLong(req.getParameter("event[groupId]")))
-                .title(req.getParameter("event[title]"))
-                .start(req.getParameter("event[start]"))
-                .end(req.getParameter("event[end]"))
-                .build());
-        System.out.println("Size: " + Data.CALENDAR_DATA.size());
-
+        Gson gson = new Gson();
         resp.setContentType("application/json");
         PrintWriter out = resp.getWriter();
 
-        Gson gson = new Gson();
+        Calendar calendar = gson.fromJson(req.getReader(), Calendar.class);
+        Data.CALENDAR_DATA.add(calendar);
+
         Map<String, String> response = new HashMap<>();
 
         if (true) {

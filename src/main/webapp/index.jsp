@@ -6,12 +6,12 @@
     <link href="${pageContext.request.contextPath}/css/bootstrap.min.css" rel="stylesheet">
     <script src="${pageContext.request.contextPath}/js/bootstrap.bundle.min.js"></script>
     <script src="${pageContext.request.contextPath}/js/index.global.js"></script>
-    <script src="${pageContext.request.contextPath}js/jquery-3.7.1.min.js"></script>
+    <script src="${pageContext.request.contextPath}/js/jquery-3.7.1.min.js"></script>
     <link href="${pageContext.request.contextPath}/css/index.css" rel="stylesheet">
 </head>
 <body>
 
-<div id="div-group"></div>
+<div id="div-group" class="d-flex gap-2 justify-content-center py-2"></div>
 
 <div id='calendar'></div>
 
@@ -40,6 +40,10 @@
                     <input class="col-8" type="text" id="input-title" name="input-title">
                 </div>
                 <div class="row m-3">
+                    <label class="col-4" for="input-content">내용</label>
+                    <input class="col-8" type="text" id="input-content" name="input-content">
+                </div>
+                <div class="row m-3">
                     <label class="col-4" for="input-group">그룹</label>
                     <select class="col-8" type="text" id="input-group" name="input-group">
                     </select>
@@ -61,14 +65,17 @@
     const inputStartDate = $('#input-start-date');
     const inputEndDate = $('#input-end-date');
     const inputTitle = $('#input-title');
+    const inputContent = $('#input-content');
     const inputGroup = $('#input-group');
 
     const buttonEventAdd = $('#button-event-add');
 
+    const divGroup = $('#div-group');
+
     const colorArray = ['yellow', 'blue', 'green', 'purple', 'orange', 'gray'];
     const textColorArray = ['black', 'white', 'white', 'white', 'black', 'black'];
 
-    let idArray = [];
+    let groupIdArray = [];
     let tempId = 14;
 
 
@@ -98,13 +105,17 @@
             },
             eventDataTransform: function (eventData) {
                 let id = eventData.groupId;
+                let colorIndex;
 
-                if (!idArray.includes(id)) {
-                    idArray.push(id);
+                if (groupIdArray.includes(id)) {
+                    colorIndex = groupIdArray.indexOf(id) % colorArray.length;
+                } else {
+                    groupIdArray.push(id);
                     inputGroup.append("<option value=\"" + id + "\">" + id + "</option>");
+                    divGroup.append("<span class='badge d-flex align-items-center p-1 pe-2 text-primary-emphasis border border-secondary-subtle rounded-pill'>" +
+                        + id + "</span>");
                 }
-
-                let colorIndex = idArray.indexOf(id) % colorArray.length;
+                console.log(eventData.content);
 
                 return {
                     id: eventData.id,
@@ -113,7 +124,8 @@
                     start: eventData.start,
                     end: eventData.end,
                     extendedProps: {
-                        groupId: eventData.groupId
+                        groupId: eventData.groupId,
+                        content: eventData.content
                     },
                     backgroundColor: colorArray[colorIndex],
                     textColor: textColorArray[colorIndex]
@@ -127,6 +139,7 @@
                     null,
                     stringToDate(selectionInfo.start),
                     stringToDate(selectionInfo.end),
+                    '',
                     ''
                 );
 
@@ -140,7 +153,8 @@
                     info.event.extendedProps.groupId,
                     stringToDate(info.event.start),
                     stringToDate(info.event.end),
-                    info.event.title
+                    info.event.title,
+                    info.event.extendedProps.content
                 );
 
                 modalEventAdd.modal('toggle');
@@ -154,6 +168,7 @@
                     id: info.event.id,
                     groupId: info.event.extendedProps.groupId,
                     title: info.event.title,
+                    content: info.event.extendedProps.content,
                     start: stringToDate(info.event.start),
                     end: stringToDate(info.event.end)
                 };
@@ -161,9 +176,7 @@
                 $.ajax({
                     url: '/calendar/modify',
                     method: 'post',
-                    data: {
-                        'event': event,
-                    },
+                    data: JSON.stringify(event),
                     success: function (res) {
                     },
                     failure: function (res) {
@@ -188,6 +201,7 @@
                     id: tempId,
                     groupId: inputGroup.val(),
                     title: inputTitle.val(),
+                    content: inputContent.val(),
                     start: inputStartDate.val(),
                     end: inputEndDate.val()
                 };
@@ -195,9 +209,7 @@
                 $.ajax({
                     url: '/calendar/add',
                     method: 'post',
-                    data: {
-                        'event': event,
-                    },
+                    data: JSON.stringify(event),
                     success: function (res) {
                         calendar.removeAllEvents();
                         calendar.refetchEvents();
@@ -213,6 +225,7 @@
                     id: inputEventId.val(),
                     groupId: inputGroup.val(),
                     title: inputTitle.val(),
+                    content: inputContent.val(),
                     start: inputStartDate.val(),
                     end: inputEndDate.val()
                 };
@@ -220,9 +233,7 @@
                 $.ajax({
                     url: '/calendar/modify',
                     method: 'post',
-                    data: {
-                        'event': event,
-                    },
+                    data: JSON.stringify(event),
                     success: function (res) {
                         calendar.removeAllEvents();
                         calendar.refetchEvents();
@@ -236,6 +247,7 @@
 
             modalEventAdd.modal('toggle');
         });
+
     });
 
     function stringToDate(dateStr) {
@@ -247,7 +259,7 @@
         return year + '-' + month + '-' + day;
     }
 
-    function setModal(title, buttonText, eventId, groupId, start, end, eventTitle) {
+    function setModal(title, buttonText, eventId, groupId, start, end, eventTitle, eventContent) {
         modalTitle.text(title);
         buttonEventAdd.text(buttonText);
         inputEventId.val(eventId);
@@ -255,6 +267,7 @@
         inputStartDate.val(start);
         inputEndDate.val(end);
         inputTitle.val(eventTitle);
+        inputContent.val(eventContent);
     }
 
 </script>
