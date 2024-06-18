@@ -79,6 +79,7 @@
     const textColorArray = ['black', 'white', 'white', 'white', 'black', 'black'];
 
     let groupIdArray = [];
+    let hiddenGroupIdArray = [];
     let tempId = 14;
 
 
@@ -106,6 +107,14 @@
                     alert('there was an error while fetching events!');
                 },
             },
+            // trigger when group toggle
+            eventDidMount: function (info) {
+                if (hiddenGroupIdArray.includes(info.event.extendedProps.groupId)) {
+                    $(info.el).hide();
+                } else {
+                    $(info.el).show();
+                }
+            },
             eventDataTransform: function (eventData) {
                 let id = eventData.groupId;
                 let colorIndex;
@@ -115,8 +124,30 @@
                 } else {
                     groupIdArray.push(id);
                     inputGroup.append("<option value=\"" + id + "\">" + id + "</option>");
-                    divGroup.append("<span class='badge d-flex align-items-center p-1 pe-2 text-primary-emphasis border border-secondary-subtle rounded-pill'>" +
-                        +id + "</span>");
+                    divGroup.append("<span id='span-group-" + id + "' class='badge d-flex align-items-center p-1 pe-2 text-primary-emphasis border border-secondary-subtle rounded-pill' style='font-size: 14px'>" +
+                        +id + " sampleGroupName</button>");
+
+                    $('#span-group-' + id).on('click', function () {
+                        if ($(this).hasClass('hidden')) {
+                            $(this).removeClass('hidden');
+                            $(this).css('background', 'none');
+
+                            hiddenGroupIdArray.splice(hiddenGroupIdArray.indexOf(id), 1);
+                            console.log(hiddenGroupIdArray);
+
+                            calendar.removeAllEvents();
+                            calendar.refetchEvents();
+                        } else {
+                            $(this).addClass('hidden');
+                            $(this).css('background-color', 'gray');
+
+                            hiddenGroupIdArray.push(id);
+                            console.log(hiddenGroupIdArray);
+
+                            calendar.removeAllEvents();
+                            calendar.refetchEvents();
+                        }
+                    });
                 }
 
                 return {
