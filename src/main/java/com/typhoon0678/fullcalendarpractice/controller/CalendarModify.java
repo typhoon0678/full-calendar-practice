@@ -25,13 +25,15 @@ public class CalendarModify extends HttpServlet {
         PrintWriter out = resp.getWriter();
 
         Calendar calendar = gson.fromJson(req.getReader(), Calendar.class);
-        Data.CALENDAR_DATA.set(Long.valueOf(calendar.getId()).intValue(), calendar);
+        Data.CALENDAR_DATA.set(findIndex(calendar.getId()), calendar);
 
         Map<String, String> response = new HashMap<>();
 
         if (true) {
+            resp.setStatus(HttpServletResponse.SC_OK);
             response.put("status", "success");
         } else {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             response.put("status", "failure");
         }
         out.println(gson.toJson(response));

@@ -3,10 +3,13 @@
 <html>
 <head>
     <title>Calendar</title>
-    <link href="${pageContext.request.contextPath}/css/bootstrap.min.css" rel="stylesheet">
-    <script src="${pageContext.request.contextPath}/js/bootstrap.bundle.min.js"></script>
-    <script src="${pageContext.request.contextPath}/js/index.global.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+            crossorigin="anonymous"></script>
     <script src="${pageContext.request.contextPath}/js/jquery-3.7.1.min.js"></script>
+    <script src="${pageContext.request.contextPath}/js/index.global.js"></script>
     <link href="${pageContext.request.contextPath}/css/index.css" rel="stylesheet">
 </head>
 <body>
@@ -113,9 +116,8 @@
                     groupIdArray.push(id);
                     inputGroup.append("<option value=\"" + id + "\">" + id + "</option>");
                     divGroup.append("<span class='badge d-flex align-items-center p-1 pe-2 text-primary-emphasis border border-secondary-subtle rounded-pill'>" +
-                        + id + "</span>");
+                        +id + "</span>");
                 }
-                console.log(eventData.content);
 
                 return {
                     id: eventData.id,
@@ -173,18 +175,29 @@
                     end: stringToDate(info.event.end)
                 };
 
-                $.ajax({
-                    url: '/calendar/modify',
-                    method: 'post',
-                    data: JSON.stringify(event),
-                    success: function (res) {
+                fetch('/calendar/modify', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
                     },
-                    failure: function (res) {
-                        info.event = info.oldEvent;
-                        alert(res.status);
-                    }
-                });
-
+                    body: JSON.stringify(event)
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw response;
+                        }
+                        return response.json();
+                    })
+                    .then(res => {
+                        console.log(res);
+                    })
+                    .catch(error => {
+                        console.log(error);
+                        error.json().then(err => {
+                            info.revert();
+                            alert(err.status);
+                        });
+                    });
             }
         });
 
@@ -206,20 +219,31 @@
                     end: inputEndDate.val()
                 };
 
-                $.ajax({
-                    url: '/calendar/add',
-                    method: 'post',
-                    data: JSON.stringify(event),
-                    success: function (res) {
+
+                fetch('/calendar/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(event)
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw response;
+                        }
+                        return response.json();
+                    })
+                    .then(res => {
                         calendar.removeAllEvents();
                         calendar.refetchEvents();
                         alert(res.status);
-                    },
-                    failure: function (res) {
-                        event.revert();
-                        alert(res.status);
-                    }
-                });
+                    })
+                    .catch(error => {
+                        error.json().then(err => {
+                            event.revert();
+                            alert(err.status);
+                        });
+                    });
             } else if (modalTitle.text() === '일정 변경') {
                 const event = {
                     id: inputEventId.val(),
@@ -230,19 +254,29 @@
                     end: inputEndDate.val()
                 };
 
-                $.ajax({
-                    url: '/calendar/modify',
-                    method: 'post',
-                    data: JSON.stringify(event),
-                    success: function (res) {
+                fetch('/calendar/modify', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(event)
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw response;
+                        }
+                        return response.json();
+                    })
+                    .then(res => {
                         calendar.removeAllEvents();
                         calendar.refetchEvents();
                         alert(res.status);
-                    },
-                    failure: function (res) {
-                        alert(res.status);
-                    }
-                });
+                    })
+                    .catch(error => {
+                        error.json().then(err => {
+                            alert(err.status);
+                        });
+                    });
             }
 
             modalEventAdd.modal('toggle');
