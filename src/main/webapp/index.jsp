@@ -75,8 +75,8 @@
 
     const divGroup = $('#div-group');
 
-    const colorArray = ['yellow', 'blue', 'green', 'purple', 'orange', 'gray'];
-    const textColorArray = ['black', 'white', 'white', 'white', 'black', 'black'];
+    const colorArray = ['yellow', 'blue', 'green', 'purple', 'orange', 'red', 'skyblue', 'gray'];
+    const textColorArray = ['black', 'white', 'white', 'white', 'black', 'white', 'black', 'black'];
 
     let groupIdArray = [];
     let hiddenGroupIdArray = [];
@@ -107,21 +107,14 @@
                     alert('there was an error while fetching events!');
                 },
             },
-            // trigger when group toggle
-            eventDidMount: function (info) {
-                if (hiddenGroupIdArray.includes(info.event.extendedProps.groupId)) {
-                    $(info.el).hide();
-                } else {
-                    $(info.el).show();
-                }
-            },
             eventDataTransform: function (eventData) {
                 let id = eventData.groupId;
+                if (!id) {
+                    id = 0;
+                }
                 let colorIndex;
 
-                if (groupIdArray.includes(id)) {
-                    colorIndex = groupIdArray.indexOf(id) % colorArray.length;
-                } else {
+                if (!groupIdArray.includes(id)) {
                     groupIdArray.push(id);
                     inputGroup.append("<option value=\"" + id + "\">" + id + "</option>");
                     divGroup.append("<span id='span-group-" + id + "' class='badge d-flex align-items-center p-1 pe-2 text-primary-emphasis border border-secondary-subtle rounded-pill' style='font-size: 14px'>" +
@@ -150,6 +143,8 @@
                     });
                 }
 
+                colorIndex = groupIdArray.indexOf(id) % colorArray.length;
+
                 return {
                     id: eventData.id,
                     groupId: eventData.id,
@@ -157,12 +152,20 @@
                     start: eventData.start,
                     end: eventData.end,
                     extendedProps: {
-                        groupId: eventData.groupId,
+                        groupId: id,
                         content: eventData.content
                     },
                     backgroundColor: colorArray[colorIndex],
                     textColor: textColorArray[colorIndex]
                 };
+            },
+            // trigger when group toggle
+            eventDidMount: function (info) {
+                if (hiddenGroupIdArray.includes(info.event.extendedProps.groupId)) {
+                    $(info.el).hide();
+                } else {
+                    $(info.el).show();
+                }
             },
             select: function (selectionInfo) {
                 setModal(

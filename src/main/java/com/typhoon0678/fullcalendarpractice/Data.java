@@ -93,6 +93,18 @@ public class Data {
                             .title("Click for Google")
                             .content("test content12")
                             .start("2024-06-28")
+                            .build(),
+                    Calendar.builder()
+                            .id(13L)
+                            .title("My Schedule")
+                            .content("test content13")
+                            .start("2024-06-28")
+                            .build(),
+                    Calendar.builder()
+                            .id(14L)
+                            .title("My Schedule2222")
+                            .content("test content14")
+                            .start("2024-06-28")
                             .build()
             )
     );
